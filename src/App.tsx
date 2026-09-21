@@ -312,25 +312,15 @@ function LockScreen({ email, isUnlocked, recoveryMode, onUnlock, onRecoveryDone,
 
   async function handleForgot(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setError(''); setInfo('');
-    try {
-      const apiUrl = 'https://ehypasmwglaonikeguwh.supabase.co/functions/v1/send-reset-link';
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(import.meta.env.JWT_2 || import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || import.meta.env.JWT)}`,
-          'X-Client-Info': 'billing-app',
-        },
-        body: JSON.stringify({ email, redirectUrl: `${import.meta.env.VITE_APP_URL || 'https://new-bill-alpha.vercel.app'}/?reset=1` }),
-      });
-      const result = await response.json();
-      setBusy(false);
-      if (!response.ok) { setError(result.error || 'Something went wrong. Please try again.'); return; }
-      setInfo(`A reset link has been sent to ${email}. Open it soon, while this app is available, and check your spam folder if needed.`);
-    } catch {
-      setBusy(false);
-      setError('Network error. Please check your connection and try again.');
+    const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/?reset=1`,
+    });
+    setBusy(false);
+    if (err) {
+      setError(err.message);
+      return;
     }
+    setInfo(`A reset link has been sent to ${email}. Check your inbox and spam folder.`);
   }
 
   async function handleRecovery(e: React.FormEvent) {
