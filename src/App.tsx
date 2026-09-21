@@ -836,7 +836,7 @@ function LabourerForm({ onSubmit }: { onSubmit: (event: React.FormEvent<HTMLForm
     <div className="form-actions full"><button type="submit" className="button primary">Add worker</button></div>
   </form>;
 }
-function DocumentForm({ type, settings, invoiceCount, quotationCount, editing, onSaved }: { type: 'invoice' | 'quotation'; settings: SettingsData | null; invoiceCount: number; quotationCount: number; editing: { document: Document; lines: Line[]; customer: Customer | null } | null; onSaved: () => void }) {
+function DocumentForm({ type, settings, invoiceCount, quotationCount, editing, onSaved }: { type: 'invoice' | 'quotation'; settings: SettingsData | null; invoiceCount: number; quotationCount: number; editing: { document: Document; lines: Line[]; customer: Customer | null } | null; onNotify: (message: string) => void; onSaved: () => void }) {
   const [custName, setCustName] = useState(editing?.customer?.name || editing?.document.customers?.name || '');
   const [custProject, setCustProject] = useState(editing?.customer?.project_name || editing?.document.customers?.project_name || '');
   const [custAddress, setCustAddress] = useState(editing?.customer?.address || editing?.document.customers?.address || '');
@@ -872,12 +872,12 @@ function DocumentForm({ type, settings, invoiceCount, quotationCount, editing, o
       const docId = editing!.document.id;
       const updatePayload = type === 'invoice'
         ? { customer_id: customerId, invoice_date: date, due_date: dueDate || null, discount, tax, grand_total: grand, balance_due: Math.max(0, grand - Number(editing!.document.amount_paid || 0)), notes }
-        : { customer_id: customerId, quotation_date: date, valid_until: dueDate || null, subtotal, discount, tax, grand_total: grand, notes, terms: [] };
+        : { customer_id: customerId, quotation_date: date, valid_until: dueDate || null, discount, tax, grand_total: grand, notes };
       const { error: docError } = await supabase.from(table).update(updatePayload).eq('id', docId);
-      if (docError) { setNotice('Unable to update document'); return; }
+      if (docError) { onNotify(docError.message); return; }
       await supabase.from(itemsTable).delete().eq(itemKey, docId);
       const rows = lines.filter((line) => line.description.trim()).map((line) => ({ [itemKey]: docId, description: line.description.trim(), unit: line.unit.trim() || 'NOS.', quantity: line.quantity, rate: line.rate }));
-      if (rows.length) { const { error: lineError } = await supabase.from(itemsTable).insert(rows); if (lineError) { setNotice('Unable to update work items'); return; } }
+      if (rows.length) { const { error: lineError } = await supabase.from(itemsTable).insert(rows); if (lineError) { onNotify(lineError.message); return; } }
       onSaved();
       return;
     }
