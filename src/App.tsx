@@ -313,12 +313,12 @@ function LockScreen({ email, isUnlocked, recoveryMode, onUnlock, onRecoveryDone,
   async function handleForgot(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setError(''); setInfo('');
     try {
-      const apiUrl = `${(import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL)}/functions/v1/send-reset-link`;
+      const apiUrl = 'https://ehypasmwglaonikeguwh.supabase.co/functions/v1/send-reset-link';
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)}`,
+          'Authorization': `Bearer ${(import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || import.meta.env.JWT)}`,
           'X-Client-Info': 'billing-app',
         },
         body: JSON.stringify({ email, redirectUrl: `${import.meta.env.VITE_APP_URL || window.location.origin}/?reset=1` }),
