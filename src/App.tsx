@@ -871,12 +871,12 @@ function DocumentForm({ type, settings, invoiceCount, quotationCount, editing, o
     if (isEditing) {
       const docId = editing!.document.id;
       const updatePayload = type === 'invoice'
-        ? { customer_id: customerId, invoice_date: date, due_date: dueDate || null, subtotal, discount, tax, round_off: 0, grand_total: grand, balance_due: Math.max(0, grand - Number(editing!.document.amount_paid || 0)), notes }
+        ? { customer_id: customerId, invoice_date: date, due_date: dueDate || null, discount, tax, grand_total: grand, balance_due: Math.max(0, grand - Number(editing!.document.amount_paid || 0)), notes }
         : { customer_id: customerId, quotation_date: date, valid_until: dueDate || null, subtotal, discount, tax, grand_total: grand, notes, terms: [] };
       const { error: docError } = await supabase.from(table).update(updatePayload).eq('id', docId);
       if (docError) { setNotice('Unable to update document'); return; }
       await supabase.from(itemsTable).delete().eq(itemKey, docId);
-      const rows = lines.filter((line) => line.description.trim()).map((line) => ({ [itemKey]: docId, description: line.description.trim(), unit: line.unit.trim() || 'NOS.', quantity: line.quantity, rate: line.rate, amount: line.quantity * line.rate }));
+      const rows = lines.filter((line) => line.description.trim()).map((line) => ({ [itemKey]: docId, description: line.description.trim(), unit: line.unit.trim() || 'NOS.', quantity: line.quantity, rate: line.rate }));
       if (rows.length) { const { error: lineError } = await supabase.from(itemsTable).insert(rows); if (lineError) { setNotice('Unable to update work items'); return; } }
       onSaved();
       return;
@@ -885,11 +885,11 @@ function DocumentForm({ type, settings, invoiceCount, quotationCount, editing, o
     const prefix = type === 'invoice' ? settings?.invoice_prefix || 'INV-' : settings?.quotation_prefix || 'QT-';
     const number = `${prefix}${String(existing + 1).padStart(4, '0')}`;
     const payload = type === 'invoice'
-      ? { invoice_number: number, customer_id: customerId, invoice_date: date, due_date: dueDate || null, status: 'Unpaid', subtotal, discount, tax, round_off: 0, grand_total: grand, amount_paid: 0, balance_due: grand, notes }
+      ? { invoice_number: number, customer_id: customerId, invoice_date: date, due_date: dueDate || null, status: 'Unpaid', discount, tax, grand_total: grand, amount_paid: 0, balance_due: grand, notes }
       : { quotation_number: number, customer_id: customerId, quotation_date: date, valid_until: dueDate || null, status: 'Draft', subtotal, discount, tax, grand_total: grand, notes, terms: [] };
     const { data, error } = await supabase.from(table).insert(payload).select('id').maybeSingle();
-    if (error || !data) return;
-    const rows = lines.filter((line) => line.description.trim()).map((line) => ({ [itemKey]: data.id, description: line.description.trim(), unit: line.unit.trim() || 'NOS.', quantity: line.quantity, rate: line.rate, amount: line.quantity * line.rate }));
+    if (error || !data) { setNotice(error?.message || 'Unable to save document'); return; }
+    const rows = lines.filter((line) => line.description.trim()).map((line) => ({ [itemKey]: data.id, description: line.description.trim(), unit: line.unit.trim() || 'NOS.', quantity: line.quantity, rate: line.rate }));
     const { error: lineError } = rows.length ? await supabase.from(itemsTable).insert(rows) : { error: null };
     if (lineError) return;
     onSaved();
@@ -938,7 +938,7 @@ function EstimateForm({ estimateCount, editing, onSaved }: { estimateCount: numb
     const prefix = 'EST-';
     const number = `${prefix}${String(estimateCount + 1).padStart(4, '0')}`;
     const { data, error } = await supabase.from('estimates').insert({ estimate_number: number, customer_id: customerId, estimate_date: date, status, notes }).select('id').maybeSingle();
-    if (error || !data) return;
+    if (error || !data) { setNotice(error?.message || 'Unable to save document'); return; }
     const rows = lines.filter((line) => line.description.trim()).map((line) => ({ estimate_id: data.id, description: line.description.trim(), particulars: line.particulars.trim() || null, quantity: line.quantity }));
     const { error: lineError } = rows.length ? await supabase.from('estimate_items').insert(rows) : { error: null };
     if (lineError) return;
