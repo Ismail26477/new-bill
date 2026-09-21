@@ -29,7 +29,7 @@ const today = new Date().toISOString().slice(0, 10);
 function selectZeroOnFocus(event: React.FocusEvent<HTMLInputElement>) { if (event.currentTarget.value === '0') event.currentTarget.select(); }
 function resizeDescription(event: React.FormEvent<HTMLTextAreaElement>) { const textarea = event.currentTarget; textarea.style.height = 'auto'; textarea.style.height = `${textarea.scrollHeight}px`; }
 
-const LOCK_EMAIL = 'irsusheikh14@gmail.com';
+const LOCK_EMAIL = 'irsusheikh13@gmail.com';
 const recoveryUrlRequested = (() => {
   const hashParams = new URLSearchParams(window.location.hash.slice(1));
   const searchParams = new URLSearchParams(window.location.search);
