@@ -318,7 +318,7 @@ function LockScreen({ email, isUnlocked, recoveryMode, onUnlock, onRecoveryDone,
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || import.meta.env.JWT)}`,
+          'Authorization': `Bearer ${(import.meta.env.JWT_2 || import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || import.meta.env.JWT)}`,
           'X-Client-Info': 'billing-app',
         },
         body: JSON.stringify({ email, redirectUrl: `${import.meta.env.VITE_APP_URL || window.location.origin}/?reset=1` }),
