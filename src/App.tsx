@@ -321,7 +321,7 @@ function LockScreen({ email, isUnlocked, recoveryMode, onUnlock, onRecoveryDone,
           'Authorization': `Bearer ${(import.meta.env.JWT_2 || import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || import.meta.env.JWT)}`,
           'X-Client-Info': 'billing-app',
         },
-        body: JSON.stringify({ email, redirectUrl: `${import.meta.env.VITE_APP_URL || window.location.origin}/?reset=1` }),
+        body: JSON.stringify({ email, redirectUrl: `${import.meta.env.VITE_APP_URL || 'https://new-bill-alpha.vercel.app'}/?reset=1` }),
       });
       const result = await response.json();
       setBusy(false);
