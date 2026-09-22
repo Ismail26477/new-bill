@@ -29,7 +29,7 @@ const today = new Date().toISOString().slice(0, 10);
 function selectZeroOnFocus(event: React.FocusEvent<HTMLInputElement>) { if (event.currentTarget.value === '0') event.currentTarget.select(); }
 function resizeDescription(event: React.FormEvent<HTMLTextAreaElement>) { const textarea = event.currentTarget; textarea.style.height = 'auto'; textarea.style.height = `${textarea.scrollHeight}px`; }
 
-const LOCK_EMAIL = 'irsusheikh14@gmail.com';
+const LOCK_EMAIL = 'irsusheikh13@gmail.com';
 const recoveryUrlRequested = (() => {
   const hashParams = new URLSearchParams(window.location.hash.slice(1));
   const searchParams = new URLSearchParams(window.location.search);
@@ -251,13 +251,13 @@ function App() {
 
   return <div className="app-shell">
     <aside className={`sidebar ${mobileOpen ? 'open' : ''}`}>
-      <div className="brand"><div className="brand-mark"><img src="/image copy 2.png" alt="Shri Tirupati logo" /></div><div><strong>TIRUPATI</strong><span>PLUMBING CONTRACTOR</span></div><button className="mobile-close" onClick={() => setMobileOpen(false)}><X size={20} /></button></div>
+      <div className="brand"><div className="brand-mark"><img src="/new-logo.png" alt="Shri Venktesh Plumbing Contractor logo" /></div><div><strong>VENKTESH</strong><span>PLUMBING CONTRACTOR</span></div><button className="mobile-close" onClick={() => setMobileOpen(false)}><X size={20} /></button></div>
       <div className="workspace"><span>WORKSPACE</span><button>Washim office <ChevronDown size={14} /></button></div>
       <nav>{nav.map(([label, Icon]) => <button key={label} className={view === label ? 'active' : ''} onClick={() => { setView(label); setMobileOpen(false); }}><Icon size={18} /><span>{label}</span>{label === 'Invoices' && invoices.filter((invoice) => invoice.status === 'Unpaid').length > 0 ? <em>{invoices.filter((invoice) => invoice.status === 'Unpaid').length}</em> : null}</button>)}</nav>
-      <div className="sidebar-footer"><div className="avatar">BP</div><div><strong>Bandu S. Pathe</strong><small>Proprietor</small></div>{isUnlocked && <button onClick={() => { void supabase.auth.signOut(); }} title="Lock invoices & quotations"><Lock size={17} /></button>}<button onClick={() => setView('Settings')}><Settings size={17} /></button></div>
+      <div className="sidebar-footer"><div className="avatar">HP</div><div><strong>Harish S. Phuse</strong><small>Proprietor</small></div>{isUnlocked && <button onClick={() => { void supabase.auth.signOut(); }} title="Lock invoices & quotations"><Lock size={17} /></button>}<button onClick={() => setView('Settings')}><Settings size={17} /></button></div>
     </aside>
     <main className="main-content">
-      <header className="topbar"><button className="menu-button" onClick={() => setMobileOpen(true)}><Menu size={22} /></button><div className="breadcrumbs"><span>Workspace</span><b>/</b><strong>{view}</strong></div><div className="top-actions"><div className="search-global"><Search size={17} /><input placeholder="Search anything..." value={query} onChange={(event) => setQuery(event.target.value)} /></div><button className="round-button"><CalendarDays size={18} /></button><div className="profile-chip"><div className="avatar small">BP</div><span>Bandu Pathe</span><ChevronDown size={14} /></div></div></header>
+      <header className="topbar"><button className="menu-button" onClick={() => setMobileOpen(true)}><Menu size={22} /></button><div className="breadcrumbs"><span>Workspace</span><b>/</b><strong>{view}</strong></div><div className="top-actions"><div className="search-global"><Search size={17} /><input placeholder="Search anything..." value={query} onChange={(event) => setQuery(event.target.value)} /></div><button className="round-button"><CalendarDays size={18} /></button><div className="profile-chip"><div className="avatar small">HP</div><span>Harish Phuse</span><ChevronDown size={14} /></div></div></header>
       {notice && <div className="toast">{notice}</div>}
       <div className="page-content">
 
@@ -312,25 +312,15 @@ function LockScreen({ email, isUnlocked, recoveryMode, onUnlock, onRecoveryDone,
 
   async function handleForgot(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setError(''); setInfo('');
-    try {
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-reset-link`;
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'X-Client-Info': 'billing-app',
-        },
-        body: JSON.stringify({ email, redirectUrl: `${import.meta.env.VITE_APP_URL || window.location.origin}/?reset=1` }),
-      });
-      const result = await response.json();
-      setBusy(false);
-      if (!response.ok) { setError(result.error || 'Something went wrong. Please try again.'); return; }
-      setInfo(`A reset link has been sent to ${email}. Open it soon, while this app is available, and check your spam folder if needed.`);
-    } catch {
-      setBusy(false);
-      setError('Network error. Please check your connection and try again.');
+    const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: 'https://new-bill-alpha.vercel.app/?reset=1',
+    });
+    setBusy(false);
+    if (err) {
+      setError(err.message);
+      return;
     }
+    setInfo(`A reset link has been sent to ${email}. Check your inbox and spam folder.`);
   }
 
   async function handleRecovery(e: React.FormEvent) {
@@ -356,7 +346,7 @@ function LockScreen({ email, isUnlocked, recoveryMode, onUnlock, onRecoveryDone,
   </div></div>;
 }
 
-function Dashboard({ invoices, quotations, totals, onCreate, onNavigate }: { invoices: Document[]; quotations: Document[]; totals: { invoiceAmount: number; quotationAmount: number; paid: number; pending: number }; onCreate: (type: 'invoice' | 'quotation') => void; onNavigate: (view: View) => void }) { return <section><div className="welcome"><div><p className="eyebrow">TODAY</p><h1>Welcome back, Bandu.</h1><p className="muted">Here's what's happening with your business.</p></div><div className="welcome-actions"><button className="button secondary" onClick={() => onCreate('quotation')}><Plus size={17} /> New quotation</button><button className="button primary" onClick={() => onCreate('invoice')}><Plus size={17} /> New invoice</button></div></div><div className="metric-grid"><Metric label="Total billing" value={money(totals.invoiceAmount)} change={`${invoices.length} invoices`} icon={ReceiptIndianRupee} tone="blue" /><Metric label="Outstanding" value={money(totals.pending)} change="Needs attention" icon={CircleDollarSign} tone="amber" /><Metric label="Collected" value={money(totals.paid)} change="Paid to date" icon={FileText} tone="green" /><Metric label="Quotation value" value={money(totals.quotationAmount)} change={`${quotations.length} quotations`} icon={FileText} tone="slate" /></div><div className="dashboard-grid"><div className="chart-card"><div className="card-heading"><div><h3>Billing overview</h3><p>Invoice and quotation value over the last 6 months</p></div><button className="filter-button">Last 6 months <ChevronDown size={14} /></button></div><div className="chart"><div className="y-axis"><span>₹2L</span><span>₹1.5L</span><span>₹1L</span><span>₹50K</span><span>₹0</span></div><div className="bars">{['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'].map((month, index) => <div className="bar-group" key={month}><div className="bar invoice" style={{ height: `${[38, 52, 45, 68, 58, 78][index]}%` }} /><div className="bar quote" style={{ height: `${[25, 38, 30, 46, 40, 55][index]}%` }} /><span>{month}</span></div>)}</div></div><div className="legend"><span><i className="dot blue" /> Invoices</span><span><i className="dot teal" /> Quotations</span></div></div><div className="side-card"><div className="card-heading"><div><h3>Recent activity</h3><p>Your latest documents</p></div><button className="text-button" onClick={() => onNavigate('Invoices')}>View all</button></div><div className="activity-list">{[...invoices.slice(0, 3), ...quotations.slice(0, 2)].slice(0, 4).map((doc) => <div className="activity-row" key={doc.id}><div className="activity-icon"><FileText size={16} /></div><div><strong>{doc.invoice_number || doc.quotation_number}</strong><small>{doc.customers?.name || 'Walk-in customer'} · {dateLabel(doc.invoice_date || doc.quotation_date)}</small></div><b>{money(doc.grand_total)}</b></div>)}{invoices.length + quotations.length === 0 && <EmptyState title="No activity yet" text="Your saved documents will appear here." />}</div></div></div><div className="quick-section"><div className="card-heading"><div><h3>Quick actions</h3><p>Common tasks for your workday</p></div></div><div className="quick-grid"><button onClick={() => onCreate('invoice')}><ReceiptIndianRupee size={20} /><span><strong>Create invoice</strong><small>Bill a completed job</small></span><Plus size={16} /></button><button onClick={() => onCreate('quotation')}><FileText size={20} /><span><strong>Create quotation</strong><small>Send a new estimate</small></span><Plus size={16} /></button><button onClick={() => onNavigate('Customers')}><Users size={20} /><span><strong>Add customer</strong><small>Save client details</small></span><Plus size={16} /></button></div></div></section> }
+function Dashboard({ invoices, quotations, totals, onCreate, onNavigate }: { invoices: Document[]; quotations: Document[]; totals: { invoiceAmount: number; quotationAmount: number; paid: number; pending: number }; onCreate: (type: 'invoice' | 'quotation') => void; onNavigate: (view: View) => void }) { return <section><div className="welcome"><div><p className="eyebrow">TODAY</p><h1>Welcome back, Harish.</h1><p className="muted">Here's what's happening with your business.</p></div><div className="welcome-actions"><button className="button secondary" onClick={() => onCreate('quotation')}><Plus size={17} /> New quotation</button><button className="button primary" onClick={() => onCreate('invoice')}><Plus size={17} /> New invoice</button></div></div><div className="metric-grid"><Metric label="Total billing" value={money(totals.invoiceAmount)} change={`${invoices.length} invoices`} icon={ReceiptIndianRupee} tone="blue" /><Metric label="Outstanding" value={money(totals.pending)} change="Needs attention" icon={CircleDollarSign} tone="amber" /><Metric label="Collected" value={money(totals.paid)} change="Paid to date" icon={FileText} tone="green" /><Metric label="Quotation value" value={money(totals.quotationAmount)} change={`${quotations.length} quotations`} icon={FileText} tone="slate" /></div><div className="dashboard-grid"><div className="chart-card"><div className="card-heading"><div><h3>Billing overview</h3><p>Invoice and quotation value over the last 6 months</p></div><button className="filter-button">Last 6 months <ChevronDown size={14} /></button></div><div className="chart"><div className="y-axis"><span>₹2L</span><span>₹1.5L</span><span>₹1L</span><span>₹50K</span><span>₹0</span></div><div className="bars">{['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'].map((month, index) => <div className="bar-group" key={month}><div className="bar invoice" style={{ height: `${[38, 52, 45, 68, 58, 78][index]}%` }} /><div className="bar quote" style={{ height: `${[25, 38, 30, 46, 40, 55][index]}%` }} /><span>{month}</span></div>)}</div></div><div className="legend"><span><i className="dot blue" /> Invoices</span><span><i className="dot teal" /> Quotations</span></div></div><div className="side-card"><div className="card-heading"><div><h3>Recent activity</h3><p>Your latest documents</p></div><button className="text-button" onClick={() => onNavigate('Invoices')}>View all</button></div><div className="activity-list">{[...invoices.slice(0, 3), ...quotations.slice(0, 2)].slice(0, 4).map((doc) => <div className="activity-row" key={doc.id}><div className="activity-icon"><FileText size={16} /></div><div><strong>{doc.invoice_number || doc.quotation_number}</strong><small>{doc.customers?.name || 'Walk-in customer'} · {dateLabel(doc.invoice_date || doc.quotation_date)}</small></div><b>{money(doc.grand_total)}</b></div>)}{invoices.length + quotations.length === 0 && <EmptyState title="No activity yet" text="Your saved documents will appear here." />}</div></div></div><div className="quick-section"><div className="card-heading"><div><h3>Quick actions</h3><p>Common tasks for your workday</p></div></div><div className="quick-grid"><button onClick={() => onCreate('invoice')}><ReceiptIndianRupee size={20} /><span><strong>Create invoice</strong><small>Bill a completed job</small></span><Plus size={16} /></button><button onClick={() => onCreate('quotation')}><FileText size={20} /><span><strong>Create quotation</strong><small>Send a new estimate</small></span><Plus size={16} /></button><button onClick={() => onNavigate('Customers')}><Users size={20} /><span><strong>Add customer</strong><small>Save client details</small></span><Plus size={16} /></button></div></div></section> }
 function Metric({ label, value, change, icon: Icon, tone }: { label: string; value: string; change: string; icon: typeof FileText; tone: string }) { return <div className="metric-card"><div className={`metric-icon ${tone}`}><Icon size={19} /></div><span>{label}</span><strong>{value}</strong><small>{change}</small></div> }
 function PageHeading({ title, description, action, onAction }: { title: string; description: string; action: string; onAction: () => void }) { return <div className="page-heading"><div><p className="eyebrow">MANAGE</p><h1>{title}</h1><p className="muted">{description}</p></div><button className="button primary" onClick={onAction}><Plus size={17} /> {action}</button></div> }
 function EmptyState({ title, text }: { title: string; text: string }) { return <div className="empty-state"><BookOpen size={25} /><strong>{title}</strong><span>{text}</span></div> }
@@ -389,7 +379,7 @@ function DocumentPreview({ data, settings, onMarkPaid, onRecordPayment }: { data
   id="document-print"
 >
       {isPaid && <div className="paid-stamp">PAID</div>}
-      <header className="doc-header"><div className="doc-company"><img src="/image copy 2.png" alt="Shri Tirupati logo" /><div><h1>{settings?.company_name || 'SHRI TIRUPATI PLUMBING CONTRACTOR'}</h1><p>PRO. {settings?.proprietor_name || 'BANDUBHAU PATHE'}</p><p>{settings?.address || 'SHRI DR ANIL KAD SIR WASHIM'}</p><p>MOB. {settings?.phone || '9766677051'}</p></div></div><div className="doc-type-badge"><strong>{type === 'invoice' ? 'INVOICE' : 'QUOTATION'}</strong><span>{number}</span>{isPaid && <em className="paid-tag">PAID</em>}{isPartial && <em className="partial-tag">PARTIAL</em>}</div></header>
+      <header className="doc-header"><div className="doc-company"><img src="/new-logo.png" alt="Shri Venktesh Plumbing Contractor logo" /><div><h1>{'SHRI VENKTESH PLUMBING CONTRACTOR WSHIM'}</h1><p>PRO. {'HARISH S PHUSE'}</p><p>{ 'SHRI VENKTESH PLUMBING CONTRACTOR WSHIM'}</p><p>MOB. {'9623199934'}</p></div></div><div className="doc-type-badge"><strong>{type === 'invoice' ? 'INVOICE' : 'QUOTATION'}</strong><span>{number}</span>{isPaid && <em className="paid-tag">PAID</em>}{isPartial && <em className="partial-tag">PARTIAL</em>}</div></header>
       <section className="doc-meta"><div><span className="doc-label">{type === 'invoice' ? 'Invoice date' : 'Quotation date'}</span><strong>{dateLabel(doc.invoice_date || doc.quotation_date)}</strong></div>{type === 'invoice' && <div><span className="doc-label">Due date</span><strong>{dateLabel(doc.due_date)}</strong></div>}{type === 'quotation' && <div><span className="doc-label">Valid until</span><strong>{dateLabel(doc.valid_until)}</strong></div>}<div><span className="doc-label">Status</span><span className={`status ${doc.status.toLowerCase().replace(' ', '-')}`}>{doc.status}</span></div></section>
       <section className="doc-party"><div><span className="doc-label">Billed to</span><strong>{name}</strong>{project && <p>{project}</p>}{address && <p>{address}</p>}{phone && <p>Ph: {phone}</p>}{gst && <p>GST: {gst}</p>}</div></section>
       <table className={`doc-table ${type === 'quotation' ? 'doc-table-quote' : ''}`}><thead><tr><th className="sr">SR.</th><th className="desc">DESCRIPTION</th><th className="unit">UNIT</th>{type === 'invoice' && <th className="qty">QTY</th>}<th className="rate">RATE</th>{type === 'invoice' && <th className="amt">AMOUNT</th>}</tr></thead><tbody>{lines.map((line, index) => <tr key={index}><td className="sr">{index + 1}</td><td className="desc">{line.description}</td><td className="unit">{line.unit}</td>{type === 'invoice' && <td className="qty">{line.quantity}</td>}<td className="rate">{money(line.rate)}</td>{type === 'invoice' && <td className="amt">{money(line.quantity * line.rate)}</td>}</tr>)}</tbody></table>
@@ -846,7 +836,7 @@ function LabourerForm({ onSubmit }: { onSubmit: (event: React.FormEvent<HTMLForm
     <div className="form-actions full"><button type="submit" className="button primary">Add worker</button></div>
   </form>;
 }
-function DocumentForm({ type, settings, invoiceCount, quotationCount, editing, onSaved }: { type: 'invoice' | 'quotation'; settings: SettingsData | null; invoiceCount: number; quotationCount: number; editing: { document: Document; lines: Line[]; customer: Customer | null } | null; onSaved: () => void }) {
+function DocumentForm({ type, settings, invoiceCount, quotationCount, editing, onNotify: setNotice, onSaved }: { type: 'invoice' | 'quotation'; settings: SettingsData | null; invoiceCount: number; quotationCount: number; editing: { document: Document; lines: Line[]; customer: Customer | null } | null; onNotify: (message: string) => void; onSaved: () => void }) {
   const [custName, setCustName] = useState(editing?.customer?.name || editing?.document.customers?.name || '');
   const [custProject, setCustProject] = useState(editing?.customer?.project_name || editing?.document.customers?.project_name || '');
   const [custAddress, setCustAddress] = useState(editing?.customer?.address || editing?.document.customers?.address || '');
@@ -881,13 +871,13 @@ function DocumentForm({ type, settings, invoiceCount, quotationCount, editing, o
     if (isEditing) {
       const docId = editing!.document.id;
       const updatePayload = type === 'invoice'
-        ? { customer_id: customerId, invoice_date: date, due_date: dueDate || null, subtotal, discount, tax, round_off: 0, grand_total: grand, balance_due: Math.max(0, grand - Number(editing!.document.amount_paid || 0)), notes }
-        : { customer_id: customerId, quotation_date: date, valid_until: dueDate || null, subtotal, discount, tax, grand_total: grand, notes, terms: [] };
+        ? { customer_id: customerId, invoice_date: date, due_date: dueDate || null, discount, tax, grand_total: grand, balance_due: Math.max(0, grand - Number(editing!.document.amount_paid || 0)), notes }
+        : { customer_id: customerId, quotation_date: date, valid_until: dueDate || null, discount, tax, grand_total: grand, notes };
       const { error: docError } = await supabase.from(table).update(updatePayload).eq('id', docId);
-      if (docError) { setNotice('Unable to update document'); return; }
+      if (docError) { onNotify(docError.message); return; }
       await supabase.from(itemsTable).delete().eq(itemKey, docId);
-      const rows = lines.filter((line) => line.description.trim()).map((line) => ({ [itemKey]: docId, description: line.description.trim(), unit: line.unit.trim() || 'NOS.', quantity: line.quantity, rate: line.rate, amount: line.quantity * line.rate }));
-      if (rows.length) { const { error: lineError } = await supabase.from(itemsTable).insert(rows); if (lineError) { setNotice('Unable to update work items'); return; } }
+      const rows = lines.filter((line) => line.description.trim()).map((line) => ({ [itemKey]: docId, description: line.description.trim(), unit: line.unit.trim() || 'NOS.', quantity: line.quantity, rate: line.rate }));
+      if (rows.length) { const { error: lineError } = await supabase.from(itemsTable).insert(rows); if (lineError) { onNotify(lineError.message); return; } }
       onSaved();
       return;
     }
@@ -895,11 +885,11 @@ function DocumentForm({ type, settings, invoiceCount, quotationCount, editing, o
     const prefix = type === 'invoice' ? settings?.invoice_prefix || 'INV-' : settings?.quotation_prefix || 'QT-';
     const number = `${prefix}${String(existing + 1).padStart(4, '0')}`;
     const payload = type === 'invoice'
-      ? { invoice_number: number, customer_id: customerId, invoice_date: date, due_date: dueDate || null, status: 'Unpaid', subtotal, discount, tax, round_off: 0, grand_total: grand, amount_paid: 0, balance_due: grand, notes }
-      : { quotation_number: number, customer_id: customerId, quotation_date: date, valid_until: dueDate || null, status: 'Draft', subtotal, discount, tax, grand_total: grand, notes, terms: [] };
+      ? { invoice_number: number, customer_id: customerId, invoice_date: date, due_date: dueDate || null, status: 'Unpaid', discount, tax, grand_total: grand, amount_paid: 0, balance_due: grand, notes }
+      : { quotation_number: number, customer_id: customerId, quotation_date: date, valid_until: dueDate || null, status: 'Draft', discount, tax, grand_total: grand, notes };
     const { data, error } = await supabase.from(table).insert(payload).select('id').maybeSingle();
-    if (error || !data) return;
-    const rows = lines.filter((line) => line.description.trim()).map((line) => ({ [itemKey]: data.id, description: line.description.trim(), unit: line.unit.trim() || 'NOS.', quantity: line.quantity, rate: line.rate, amount: line.quantity * line.rate }));
+    if (error || !data) { setNotice(error?.message || 'Unable to save document'); return; }
+    const rows = lines.filter((line) => line.description.trim()).map((line) => ({ [itemKey]: data.id, description: line.description.trim(), unit: line.unit.trim() || 'NOS.', quantity: line.quantity, rate: line.rate }));
     const { error: lineError } = rows.length ? await supabase.from(itemsTable).insert(rows) : { error: null };
     if (lineError) return;
     onSaved();
@@ -948,7 +938,7 @@ function EstimateForm({ estimateCount, editing, onSaved }: { estimateCount: numb
     const prefix = 'EST-';
     const number = `${prefix}${String(estimateCount + 1).padStart(4, '0')}`;
     const { data, error } = await supabase.from('estimates').insert({ estimate_number: number, customer_id: customerId, estimate_date: date, status, notes }).select('id').maybeSingle();
-    if (error || !data) return;
+    if (error || !data) { setNotice(error?.message || 'Unable to save document'); return; }
     const rows = lines.filter((line) => line.description.trim()).map((line) => ({ estimate_id: data.id, description: line.description.trim(), particulars: line.particulars.trim() || null, quantity: line.quantity }));
     const { error: lineError } = rows.length ? await supabase.from('estimate_items').insert(rows) : { error: null };
     if (lineError) return;
@@ -965,7 +955,7 @@ function EstimatePreview({ data, settings }: { data: EstimatePreviewData; settin
   const phone = customer?.phone || estimate.customers?.phone || null;
   return <div className="preview-shell"><div className="preview-actions"><button className="button secondary" onClick={() => window.print()}><Printer size={16} /> Print</button></div>
     <div className="a4-sheet estimate-sheet" id="document-print">
-      <header className="doc-header"><div className="doc-company"><img src="/image copy 2.png" alt="Shri Tirupati logo" /><div><h1>{settings?.company_name || 'SHRI TIRUPATI PLUMBING CONTRACTOR'}</h1><p>PRO. {settings?.proprietor_name || 'BANDUBHAU PATHE'}</p><p>{settings?.address || 'SHRI DR ANIL KAD SIR WASHIM'}</p><p>MOB. {settings?.phone || '9766677051'}</p></div></div><div className="doc-type-badge"><strong>ESTIMATE</strong><span>{estimate.estimate_number}</span></div></header>
+      <header className="doc-header"><div className="doc-company"><img src="/new-logo.png" alt="Shri Venktesh Plumbing Contractor logo" /><div><h1>{'SHRI VENKTESH PLUMBING CONTRACTOR WSHIM'}</h1><p>PRO. {'HARISH S PHUSE'}</p><p>{ 'SHRI VENKTESH PLUMBING CONTRACTOR WSHIM'}</p><p>MOB. {'9623199934'}</p></div></div><div className="doc-type-badge"><strong>ESTIMATE</strong><span>{estimate.estimate_number}</span></div></header>
       <section className="doc-meta"><div><span className="doc-label">Estimate date</span><strong>{dateLabel(estimate.estimate_date)}</strong></div><div><span className="doc-label">Status</span><span className={`status ${estimate.status.toLowerCase().replace(' ', '-')}`}>{estimate.status}</span></div></section>
       <section className="doc-party"><div><span className="doc-label">Billed to</span><strong>{name}</strong>{project && <p>{project}</p>}{address && <p>{address}</p>}{phone && <p>Ph: {phone}</p>}</div></section>
       <table className="doc-table estimate-table"><thead><tr><th className="sr">SN</th><th className="desc">DESCRIPTION</th><th className="particulars">PARTICULARS</th><th className="qty">QTY</th></tr></thead><tbody>{items.map((item, index) => <tr key={item.id || index}><td className="sr">{index + 1}</td><td className="desc">{item.description}</td><td className="particulars">{item.particulars || '—'}</td><td className="qty">{Number(item.quantity)}</td></tr>)}</tbody></table>
