@@ -313,7 +313,7 @@ function LockScreen({ email, isUnlocked, recoveryMode, onUnlock, onRecoveryDone,
   async function handleForgot(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setError(''); setInfo('');
     const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/?reset=1`,
+      redirectTo: 'https://new-bill-alpha.vercel.app/?reset=1',
     });
     setBusy(false);
     if (err) {
