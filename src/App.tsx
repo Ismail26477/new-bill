@@ -836,7 +836,7 @@ function LabourerForm({ onSubmit }: { onSubmit: (event: React.FormEvent<HTMLForm
     <div className="form-actions full"><button type="submit" className="button primary">Add worker</button></div>
   </form>;
 }
-function DocumentForm({ type, settings, invoiceCount, quotationCount, editing, onSaved }: { type: 'invoice' | 'quotation'; settings: SettingsData | null; invoiceCount: number; quotationCount: number; editing: { document: Document; lines: Line[]; customer: Customer | null } | null; onNotify: (message: string) => void; onSaved: () => void }) {
+function DocumentForm({ type, settings, invoiceCount, quotationCount, editing, onNotify: setNotice, onSaved }: { type: 'invoice' | 'quotation'; settings: SettingsData | null; invoiceCount: number; quotationCount: number; editing: { document: Document; lines: Line[]; customer: Customer | null } | null; onNotify: (message: string) => void; onSaved: () => void }) {
   const [custName, setCustName] = useState(editing?.customer?.name || editing?.document.customers?.name || '');
   const [custProject, setCustProject] = useState(editing?.customer?.project_name || editing?.document.customers?.project_name || '');
   const [custAddress, setCustAddress] = useState(editing?.customer?.address || editing?.document.customers?.address || '');
@@ -886,7 +886,7 @@ function DocumentForm({ type, settings, invoiceCount, quotationCount, editing, o
     const number = `${prefix}${String(existing + 1).padStart(4, '0')}`;
     const payload = type === 'invoice'
       ? { invoice_number: number, customer_id: customerId, invoice_date: date, due_date: dueDate || null, status: 'Unpaid', discount, tax, grand_total: grand, amount_paid: 0, balance_due: grand, notes }
-      : { quotation_number: number, customer_id: customerId, quotation_date: date, valid_until: dueDate || null, status: 'Draft', subtotal, discount, tax, grand_total: grand, notes, terms: [] };
+      : { quotation_number: number, customer_id: customerId, quotation_date: date, valid_until: dueDate || null, status: 'Draft', discount, tax, grand_total: grand, notes };
     const { data, error } = await supabase.from(table).insert(payload).select('id').maybeSingle();
     if (error || !data) { setNotice(error?.message || 'Unable to save document'); return; }
     const rows = lines.filter((line) => line.description.trim()).map((line) => ({ [itemKey]: data.id, description: line.description.trim(), unit: line.unit.trim() || 'NOS.', quantity: line.quantity, rate: line.rate }));
