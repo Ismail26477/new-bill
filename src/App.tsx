@@ -874,10 +874,10 @@ function DocumentForm({ type, settings, invoiceCount, quotationCount, editing, o
         ? { customer_id: customerId, invoice_date: date, due_date: dueDate || null, discount, tax, grand_total: grand, balance_due: Math.max(0, grand - Number(editing!.document.amount_paid || 0)), notes }
         : { customer_id: customerId, quotation_date: date, valid_until: dueDate || null, discount, tax, grand_total: grand, notes };
       const { error: docError } = await supabase.from(table).update(updatePayload).eq('id', docId);
-      if (docError) { onNotify(docError.message); return; }
+      if (docError) { setNotice(docError.message); return; }
       await supabase.from(itemsTable).delete().eq(itemKey, docId);
       const rows = lines.filter((line) => line.description.trim()).map((line) => ({ [itemKey]: docId, description: line.description.trim(), unit: line.unit.trim() || 'NOS.', quantity: line.quantity, rate: line.rate }));
-      if (rows.length) { const { error: lineError } = await supabase.from(itemsTable).insert(rows); if (lineError) { onNotify(lineError.message); return; } }
+      if (rows.length) { const { error: lineError } = await supabase.from(itemsTable).insert(rows); if (lineError) { setNotice(lineError.message); return; } }
       onSaved();
       return;
     }
@@ -902,7 +902,7 @@ function EstimateList({ estimates, query, setQuery, onCreate, onView, onEdit, on
   return <section><PageHeading title="Estimates" description="Create purchase lists for clients to buy materials." action="Create estimate" onAction={onCreate} /><div className="toolbar"><div className="search-box"><Search size={17} /><input placeholder="Search estimates" value={query} onChange={(event) => setQuery(event.target.value)} /></div></div><div className="table-card"><table><thead><tr><th>Document</th><th>Customer</th><th>Date</th><th>Status</th><th></th></tr></thead><tbody>{filtered.map((row) => <tr className="clickable-row" key={row.id} onClick={() => void onView(row)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); void onView(row); } }} tabIndex={0}><td><button className="document-link" onClick={(event) => { event.stopPropagation(); void onView(row); }}>{row.estimate_number}</button><small className="table-subtext">{row.customers?.project_name || 'No project'}</small></td><td>{row.customers?.name || 'No customer'}</td><td>{dateLabel(row.estimate_date)}</td><td><span className={`status ${row.status.toLowerCase().replace(' ', '-')}`}>{row.status}</span></td><td><div className="row-actions"><button className="text-button" onClick={(event) => { event.stopPropagation(); void onEdit(row); }}>Edit</button><button className="text-button" onClick={(event) => { event.stopPropagation(); void onView(row); }}>View</button><button className="icon-button danger" onClick={(event) => { event.stopPropagation(); void onDelete(row); }}><Trash2 size={15} /></button></div></td></tr>)}</tbody></table>{filtered.length === 0 && <EmptyState title="No estimates yet" text="Create your first estimate to see it here." />}</div></section>;
 }
 
-function EstimateForm({ estimateCount, editing, onSaved }: { estimateCount: number; editing: { estimate: Estimate; items: EstimateItem[]; customer: Customer | null } | null; onSaved: () => void }) {
+function EstimateForm({ estimateCount, editing, onNotify: setNotice, onSaved }: { estimateCount: number; editing: { estimate: Estimate; items: EstimateItem[]; customer: Customer | null } | null; onNotify: (message: string) => void; onSaved: () => void }) {
   const [custName, setCustName] = useState(editing?.customer?.name || editing?.estimate.customers?.name || '');
   const [custProject, setCustProject] = useState(editing?.customer?.project_name || editing?.estimate.customers?.project_name || '');
   const [custAddress, setCustAddress] = useState(editing?.customer?.address || editing?.estimate.customers?.address || '');
