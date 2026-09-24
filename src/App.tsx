@@ -312,8 +312,9 @@ function LockScreen({ email, isUnlocked, recoveryMode, onUnlock, onRecoveryDone,
 
   async function handleForgot(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setError(''); setInfo('');
+    const redirectTo = `${window.location.origin}${window.location.pathname}?reset=1`;
     const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: 'https://new-bill-alpha.vercel.app/?reset=1',
+      redirectTo,
     });
     setBusy(false);
     if (err) {
@@ -335,7 +336,7 @@ function LockScreen({ email, isUnlocked, recoveryMode, onUnlock, onRecoveryDone,
   }
 
   if (recoveryMode) {
-    return <div className="modal-backdrop"><div className="lock-card"><div className="lock-icon"><Lock size={28} /></div><h2>Set a new password</h2><p className="lock-subtitle">Choose your new password for {email}</p><form className="lock-form" onSubmit={handleRecovery}><input type="password" placeholder="New password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required autoFocus /><input type="password" placeholder="Confirm new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required /><button className="button primary lock-submit" type="submit" disabled={busy}>{busy ? 'Saving…' : 'Update password & unlock'}</button>{error && <p className="lock-error">{error}</p>}</form></div></div>;
+    return <div className="modal-backdrop"><div className="lock-card"><div className="lock-icon"><Lock size={28} /></div><h2>Change password</h2><p className="lock-subtitle">Enter and confirm your new password for {email}</p><form className="lock-form" onSubmit={handleRecovery}><input type="password" placeholder="New password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required autoFocus /><input type="password" placeholder="Confirm new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required /><button className="button primary lock-submit" type="submit" disabled={busy}>{busy ? 'Saving…' : 'Update password & unlock'}</button>{error && <p className="lock-error">{error}</p>}</form></div></div>;
   }
 
   return <div className="modal-backdrop"><div className="lock-card"><div className="lock-icon"><Lock size={28} /></div><h2>{mode === 'signup' ? 'Create password' : mode === 'forgot' ? 'Reset password' : 'Enter password'}</h2><p className="lock-subtitle">{mode === 'signup' ? 'Set a password to protect your invoices and quotations.' : mode === 'forgot' ? `We'll send a reset link to ${email}` : 'Enter your password to view or edit'}</p>
