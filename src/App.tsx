@@ -312,7 +312,8 @@ function LockScreen({ email, isUnlocked, recoveryMode, onUnlock, onRecoveryDone,
 
   async function handleForgot(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setError(''); setInfo('');
-    const redirectTo = `${window.location.origin}${window.location.pathname}?reset=1`;
+    const redirectBase = import.meta.env.VITE_SUPABASE_REDIRECT_URL || import.meta.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || window.location.origin;
+    const redirectTo = `${redirectBase.replace(/\/$/, '')}${window.location.pathname}?reset=1`;
     const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo,
     });
