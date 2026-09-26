@@ -312,8 +312,10 @@ function LockScreen({ email, isUnlocked, recoveryMode, onUnlock, onRecoveryDone,
 
   async function handleForgot(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setError(''); setInfo('');
-    const redirectBase = import.meta.env.VITE_SUPABASE_REDIRECT_URL || import.meta.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || window.location.origin;
-    const redirectTo = `${redirectBase.replace(/\/$/, '')}${window.location.pathname}?reset=1`;
+  // Keep the recovery link on this app instead of redirecting through the Vercel login page.
+  const redirectUrl = new URL(window.location.pathname, window.location.origin);
+  redirectUrl.searchParams.set('reset', '1');
+  const redirectTo = redirectUrl.toString();
     const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo,
     });
