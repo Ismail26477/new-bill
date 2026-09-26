@@ -78,6 +78,7 @@ function App() {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setAuthChecked(true);
+      if (!data.session && !recoveryFlowRef.current) setShowLock(true);
       if (recoveryFlowRef.current) {
         setRecoveryMode(true);
         setShowLock(true);
