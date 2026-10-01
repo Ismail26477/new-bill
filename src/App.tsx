@@ -58,7 +58,7 @@ function App() {
   const [authChecked, setAuthChecked] = useState(false);
   const recoveryFlowRef = useRef(recoveryUrlRequested);
   const pendingActionRef = useRef<(() => void) | null>(null);
-  const [showLock, setShowLock] = useState(recoveryUrlRequested);
+  const [showLock, setShowLock] = useState(true);
   const [recoveryMode, setRecoveryMode] = useState(recoveryUrlRequested);
   const isUnlocked = !!session;
 
